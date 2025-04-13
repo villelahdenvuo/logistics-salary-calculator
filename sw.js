@@ -23,8 +23,20 @@ self.addEventListener("install", (event) => {
 	event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache)));
 });
 
+// Helper function to check if a URL is cacheable
+function isCacheableURL(url) {
+	const urlObj = new URL(url);
+	// Only cache HTTP and HTTPS requests
+	return urlObj.protocol === "http:" || urlObj.protocol === "https:";
+}
+
 // Serve cached content when offline
 self.addEventListener("fetch", (event) => {
+	// Skip non-cacheable URLs like chrome-extension://
+	if (!isCacheableURL(event.request.url)) {
+		return;
+	}
+
 	event.respondWith(
 		caches.match(event.request).then((response) => {
 			// Cache hit - return the response from the cached version
