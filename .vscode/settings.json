@@ -1,0 +1,18 @@
+{
+	"cSpell.words": ["tyel"],
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.formatOnSave": true,
+	"editor.insertSpaces": false,
+	"editor.detectIndentation": false,
+	"editor.tabSize": 2,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	},
+	"eslint.validate": ["javascript"],
+	"github.copilot.chat.reviewSelection.instructions": [
+		{
+			"text": "Do not add unnecessary comments, Do not add comments for removed lines, Only add explanatory comments for complex logic"
+		}
+	],
+	"websearch.preferredEngine": "bing"
+}
