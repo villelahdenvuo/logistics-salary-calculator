@@ -1,55 +1,75 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Logistics Salary Calculator</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <div class="container">
-      <h1>Logistics Salary Calculator</h1>
-      <div class="calculator-form">
-        <div class="input-row">
-          <div class="form-group">
-            <label for="age">Age:</label>
-            <input
-              type="number"
-              id="age"
-              placeholder="Your age for TyEL calculation"
-              min="18"
-              max="100"
-            />
-          </div>
-        </div>
-        <div class="input-row">
-          <div class="form-group">
-            <label for="shift-start">Shift Start:</label>
-            <input type="datetime-local" id="shift-start" required />
-          </div>
-          <div class="form-group">
-            <label for="shift-end">Shift End:</label>
-            <input type="datetime-local" id="shift-end" required />
-          </div>
-        </div>
-        <button id="calculate-btn">Calculate Salary</button>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Logistics Salary Calculator</title>
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="manifest" href="manifest.json" />
+		<meta name="theme-color" content="#4a90e2" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<link rel="apple-touch-icon" href="icons/icon-192x192.svg" />
+		<script>
+			// Register service worker for PWA functionality
+			if ("serviceWorker" in navigator) {
+				window.addEventListener("load", () => {
+					navigator.serviceWorker
+						.register("/sw.js")
+						.then((registration) => {
+							console.log("Service Worker registered with scope:", registration.scope);
+						})
+						.catch((error) => {
+							console.error("Service Worker registration failed:", error);
+						});
+				});
+			}
+		</script>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Logistics Salary Calculator</h1>
+			<div class="calculator-form">
+				<div class="input-row">
+					<div class="form-group">
+						<label for="age">Age:</label>
+						<input
+							type="number"
+							id="age"
+							placeholder="Your age for TyEL calculation"
+							min="18"
+							max="100"
+						/>
+					</div>
+				</div>
+				<div class="input-row">
+					<div class="form-group">
+						<label for="shift-start">Shift Start:</label>
+						<input type="datetime-local" id="shift-start" required />
+					</div>
+					<div class="form-group">
+						<label for="shift-end">Shift End:</label>
+						<input type="datetime-local" id="shift-end" required />
+					</div>
+				</div>
+				<button id="calculate-btn">Calculate Salary</button>
 
-        <div class="config-toggle">
-          <button id="toggle-config">Show Configuration Values ▼</button>
-          <div class="config-panel" id="config-panel">
-            <!-- Configuration values will be inserted here by JavaScript -->
-          </div>
-        </div>
-      </div>
+				<div class="config-toggle">
+					<button id="toggle-config">Show Configuration Values ▼</button>
+					<div class="config-panel" id="config-panel">
+						<!-- Configuration values will be inserted here by JavaScript -->
+					</div>
+				</div>
+			</div>
 
-      <div class="results" id="results">
-        <h2>Salary Breakdown</h2>
-        <div class="results-content" id="results-content">
-          <!-- Results will be inserted here by JavaScript -->
-        </div>
-      </div>
-    </div>
+			<div class="results" id="results">
+				<h2>Salary Breakdown</h2>
+				<div class="results-content" id="results-content">
+					<!-- Results will be inserted here by JavaScript -->
+				</div>
+			</div>
+		</div>
 
-    <script src="js/calculator.js" type="module"></script>
-  </body>
+		<script src="js/calculator.js" type="module"></script>
+	</body>
 </html>
