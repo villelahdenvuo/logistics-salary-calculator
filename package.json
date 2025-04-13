@@ -1,5 +1,5 @@
 {
-	"name": "shift-calculator",
+	"name": "logistics-salary-calculator",
 	"version": "1.0.0",
 	"description": "",
 	"main": "index.js",
@@ -8,15 +8,18 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
-		"format:check": "prettier --check ."
+		"format:check": "prettier --check .",
+		"deploy": "gh-pages -d ."
 	},
 	"keywords": [],
-	"author": "",
+	"author": "Ville Lahdenvuo <tuhoojabotti@gmail.com>",
 	"license": "ISC",
 	"type": "module",
+	"homepage": "https://villelahdenvuo.github.io/logistics-salary-calculator",
 	"devDependencies": {
 		"eslint": "^9.24.0",
 		"eslint-config-prettier": "^10.1.2",
+		"gh-pages": "^6.3.0",
 		"prettier": "^3.5.3"
 	}
 }
