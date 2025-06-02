@@ -1,4 +1,4 @@
-const CACHE_NAME = "logistics-salary-calculator-v2";
+const CACHE_NAME = "logistics-salary-calculator-v3";
 const urlsToCache = [
 	"./",
 	"./index.html",
@@ -6,10 +6,12 @@ const urlsToCache = [
 	"./js/calculator.js",
 	"./js/calculator-engine.js",
 	"./js/config.js",
+	"./js/config-manager.js",
 	"./js/storage.js",
 	"./js/components/BreakdownItem.js",
 	"./js/components/Component.js",
 	"./js/components/ConfigPanel.js",
+	"./js/components/EditableConfigPanel.js",
 	"./js/components/HourBreakdown.js",
 	"./js/components/HourlyBreakdownContainer.js",
 	"./js/components/Results.js",

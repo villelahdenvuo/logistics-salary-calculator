@@ -3,7 +3,19 @@
  * Contains all the calculation logic for shift salary calculations
  */
 
-import { getTyELRate, tvmRate } from "./config.js";
+/**
+ * Get the appropriate TyEL rate based on age and rates
+ * @param {number} age - The employee's age
+ * @param {object} tyelRates - TyEL rates object
+ * @returns {number} The TyEL rate percentage
+ */
+function getTyELRate(age, tyelRates) {
+	if (!age || isNaN(age)) return 0; // No TyEL calculation if no age provided
+
+	if (age < 53) return tyelRates.under53;
+	if (age >= 53 && age <= 62) return tyelRates.between53and62;
+	return tyelRates.over63;
+}
 
 /**
  * Calculates the complete salary breakdown for a shift
@@ -12,9 +24,11 @@ import { getTyELRate, tvmRate } from "./config.js";
  * @param {Object} config - Salary configuration with base salary and extras
  * @param {boolean} includeBreak - Whether to include break deduction
  * @param {number} age - Employee's age for TyEL calculation
+ * @param {Object} tyelRates - TyEL rates object
+ * @param {number} tvmRate - TVM unemployment insurance rate
  * @returns {Object} Complete salary calculation results
  */
-export function calculateShiftSalary(start, end, config, includeBreak, age) {
+export function calculateShiftSalary(start, end, config, includeBreak, age, tyelRates, tvmRate) {
 	// Track hourly breakdown with timestamps
 	const hourlyBreakdown = [];
 	// Summary of extras for total calculation
@@ -118,7 +132,7 @@ export function calculateShiftSalary(start, end, config, includeBreak, age) {
 	}
 
 	// Calculate TyEL deduction if age is provided
-	const tyelRate = getTyELRate(age);
+	const tyelRate = getTyELRate(age, tyelRates);
 	const tyelDeduction = tyelRate > 0 ? (totalSalary * tyelRate) / 100 : 0;
 
 	// Calculate TVM deduction (always applied regardless of age)
