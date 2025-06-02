@@ -1,4 +1,4 @@
-const CACHE_NAME = "logistics-salary-calculator-v4";
+const CACHE_NAME = "logistics-salary-calculator-v5";
 const urlsToCache = [
 	"./",
 	"./index.html",
@@ -22,7 +22,32 @@ const urlsToCache = [
 
 // Install the service worker and cache assets
 self.addEventListener("install", (event) => {
-	event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache)));
+	event.waitUntil(
+		caches.open(CACHE_NAME).then((cache) => {
+			console.log("Opened cache:", CACHE_NAME);
+			return cache.addAll(urlsToCache);
+		}),
+	);
+	self.skipWaiting(); // Add this line
+});
+
+// Add this event listener to claim clients and clean up old caches
+self.addEventListener("activate", (event) => {
+	event.waitUntil(
+		self.clients.claim().then(() =>
+			// Clean up old caches
+			caches.keys().then((cacheNames) =>
+				Promise.all(
+					cacheNames
+						.filter((cacheName) => cacheName !== CACHE_NAME) // Corrected filter
+						.map((cacheName) => {
+							console.log("Deleting old cache:", cacheName);
+							return caches.delete(cacheName);
+						}),
+				),
+			),
+		),
+	);
 });
 
 // Helper function to check if a URL is cacheable
