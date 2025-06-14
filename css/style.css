@@ -279,12 +279,17 @@ button:hover {
 	gap: var(--spacing-xl);
 }
 
+/* Global config toggle outside tabs */
+.container > .config-toggle {
+	margin-top: var(--spacing-3xl);
+}
+
 /* Configuration toggle styles */
 .config-toggle {
 	margin-top: var(--spacing-3xl);
 }
 
-#toggle-config {
+.config-toggle button[id^="toggle-config"] {
 	background-color: var(--color-background-light);
 	color: var(--color-text-secondary);
 	border: 1px solid var(--color-border);
@@ -298,7 +303,7 @@ button:hover {
 	transition: all var(--transition-fast);
 }
 
-#toggle-config:hover {
+.config-toggle button[id^="toggle-config"]:hover {
 	background-color: #e9ecef;
 }
 
@@ -472,7 +477,7 @@ button:hover {
 }
 
 /* Add rotation for toggle button */
-#toggle-config.active {
+.config-toggle button[id^="toggle-config"].active {
 	background-color: #e9ecef;
 }
 
@@ -511,20 +516,12 @@ button:hover {
 /* ICS Import Section Styles */
 .ics-import-section {
 	margin-bottom: var(--spacing-6xl);
-	border-top: 1px solid var(--color-border-light);
-	padding-top: var(--spacing-4xl);
 }
 
 .ics-import-section h2 {
 	margin-bottom: var(--spacing-3xl);
 	font-size: var(--font-size-4xl);
 	color: var(--color-text-primary);
-}
-
-.ics-form {
-	background-color: var(--color-background-lighter);
-	padding: var(--spacing-3xl);
-	border-radius: var(--radius-sm);
 }
 
 .ics-results {

@@ -12,22 +12,15 @@ export default function SingleShiftTab(props = {}) {
 		<div class="calculator-form">
 			<div class="input-row">
 				<div class="form-group">
-					<label for="shift-start">Shift Start:</label>
-					<input type="datetime-local" id="shift-start" required />
+					<label for="shift-start">Shift Start</label>
+					<input type="datetime-local" id="shift-start" step="3600" required />
 				</div>
 				<div class="form-group">
-					<label for="shift-end">Shift End:</label>
-					<input type="datetime-local" id="shift-end" required />
+					<label for="shift-end">Shift End</label>
+					<input type="datetime-local" id="shift-end" step="3600" required />
 				</div>
 			</div>
 			<button id="calculate-btn">Calculate Salary</button>
-
-			<div class="config-toggle">
-				<button id="toggle-config">Edit Configuration Settings ▼</button>
-				<div class="config-panel" id="config-panel">
-					<!-- Configuration settings will be inserted here by JavaScript -->
-				</div>
-			</div>
 		</div>
 
 		<div class="results" id="results">

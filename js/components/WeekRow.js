@@ -50,7 +50,7 @@ export default function WeekRow(props = {}) {
 		<div class="week-row" data-week-key="${weekKey}" data-all-enabled="${allEnabled}" data-some-enabled="${someEnabled}">
 			<div class="week-header">
 				<input type="checkbox" class="week-toggle" ${allEnabled ? "checked" : ""}>
-				<span class="week-label">${weekKey} (${weekData.year})</span>
+				<span class="week-label">${weekKey}</span>
 			</div>
 			<div class="week-days">
 				${dayBlocks.join("")}

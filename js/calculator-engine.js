@@ -176,6 +176,22 @@ export function calculateEndTimeFromStart(startTime, shiftDuration) {
 }
 
 /**
+ * Normalize a datetime input to round to the nearest hour
+ * @param {string|Date} dateTime - The datetime to normalize
+ * @returns {Date} Normalized date with minutes set to 00
+ */
+export function normalizeToHour(dateTime) {
+	const date = new Date(dateTime);
+	if (isNaN(date.getTime())) {
+		return date; // Return invalid date as-is for error handling
+	}
+
+	// Set minutes, seconds, and milliseconds to 0 to round to the hour
+	date.setMinutes(0, 0, 0);
+	return date;
+}
+
+/**
  * Format a date for datetime-local input
  * @param {Date} date - The date to format
  * @returns {string} Formatted date string in YYYY-MM-DDThh:mm format
@@ -185,7 +201,7 @@ export function formatDateForInput(date) {
 	const month = String(date.getMonth() + 1).padStart(2, "0");
 	const day = String(date.getDate()).padStart(2, "0");
 	const hours = String(date.getHours()).padStart(2, "0");
-	const minutes = String(date.getMinutes()).padStart(2, "0");
+	const minutes = "00"; // Always set to 00 since shifts start on the hour
 
 	return `${year}-${month}-${day}T${hours}:${minutes}`;
 }

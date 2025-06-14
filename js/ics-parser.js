@@ -36,6 +36,8 @@ function parseIcsDateTime(icsDateTime) {
 		}
 
 		const parsedDate = new Date(year, month, day, hour, minute, second);
+		// Normalize to the hour since shifts always start on the hour
+		parsedDate.setMinutes(0, 0, 0);
 		console.log(`✅ Parsed as: ${parsedDate.toISOString()} (${parsedDate.toString()})`);
 		return parsedDate;
 	}

@@ -4,6 +4,7 @@ import Results from "./components/Results.js";
 import Tabs, { initializeTabs } from "./components/Tabs.js";
 import SingleShiftTab from "./components/SingleShiftTab.js";
 import CalendarImportTab from "./components/CalendarImportTab.js";
+import ConfigToggle from "./components/ConfigToggle.js";
 import { defaultShiftDuration, formatCurrency, formatNumber, formatTime } from "./config.js";
 import { loadConfig, saveConfig, resetConfig } from "./config-manager.js";
 import { initializeIcsImport } from "./ics-handler.js";
@@ -11,6 +12,7 @@ import {
 	calculateShiftSalary,
 	calculateEndTimeFromStart,
 	formatDateForInput,
+	normalizeToHour,
 	shouldIncludeBreak,
 	validateShiftTimes,
 } from "./calculator-engine.js";
@@ -36,6 +38,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	// Render tabs
 	tabsContainer.innerHTML = Tabs({ tabs, activeTab: "single-shift" });
+
+	// Add global config toggle after tabs
+	const configToggleHtml = ConfigToggle({ id: "global" });
+	tabsContainer.insertAdjacentHTML("afterend", configToggleHtml);
 
 	// Initialize tabs functionality
 	initializeTabs("#main-tabs-container", (activeTabId) => {
@@ -65,10 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		const shiftStartInput = document.getElementById("shift-start");
 		const shiftEndInput = document.getElementById("shift-end");
 		const calculateBtn = document.getElementById("calculate-btn");
-		const toggleConfigBtn = document.getElementById("toggle-config");
-		const configPanel = document.getElementById("config-panel");
 
-		if (!shiftStartInput || !shiftEndInput || !calculateBtn || !toggleConfigBtn || !configPanel) {
+		if (!shiftStartInput || !shiftEndInput || !calculateBtn) {
 			return; // Elements not available yet
 		}
 
@@ -78,19 +82,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 		singleShiftInitialized = true;
 
-		// Toggle configuration panel
-		toggleConfigBtn.addEventListener("click", () => {
-			configPanel.classList.toggle("active");
-			if (configPanel.classList.contains("active")) {
-				toggleConfigBtn.textContent = "Hide Configuration Settings ▲";
-				toggleConfigBtn.classList.add("active");
-				populateConfigPanel(configPanel);
-			} else {
-				toggleConfigBtn.textContent = "Edit Configuration Settings ▼";
-				toggleConfigBtn.classList.remove("active");
-			}
-		});
-
 		// Function to automatically calculate salary when both times are available
 		const autoCalculateIfReady = () => {
 			if (shiftStartInput.value && shiftEndInput.value) {
@@ -99,7 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		};
 
 		const calculateEndTime = (e, value, _sourceElement) => {
-			const endTime = calculateEndTimeFromStart(value, defaultShiftDuration);
+			const normalizedStartTime = normalizeToHour(value);
+			const endTime = calculateEndTimeFromStart(normalizedStartTime, defaultShiftDuration);
 			if (endTime) {
 				shiftEndInput.value = formatDateForInput(endTime);
 				shiftEndInput.dispatchEvent(new Event("change"));
@@ -131,6 +123,23 @@ document.addEventListener("DOMContentLoaded", () => {
 			},
 		]);
 
+		// Add input event listeners to normalize times to the hour
+		const normalizeTimeInput = (input) => {
+			input.addEventListener("input", () => {
+				if (input.value) {
+					const normalizedDate = normalizeToHour(input.value);
+					const formattedValue = formatDateForInput(normalizedDate);
+					if (input.value !== formattedValue) {
+						input.value = formattedValue;
+						input.dispatchEvent(new Event("change"));
+					}
+				}
+			});
+		};
+
+		normalizeTimeInput(shiftStartInput);
+		normalizeTimeInput(shiftEndInput);
+
 		if (shiftStartInput.value && !shiftEndInput.value) {
 			calculateEndTime(null, shiftStartInput.value, shiftStartInput);
 		} else if (shiftStartInput.value && shiftEndInput.value) {
@@ -139,8 +148,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 
 		calculateBtn.addEventListener("click", () => {
-			const shiftStart = new Date(shiftStartInput.value);
-			const shiftEnd = new Date(shiftEndInput.value);
+			const shiftStart = normalizeToHour(shiftStartInput.value);
+			const shiftEnd = normalizeToHour(shiftEndInput.value);
 			const age = currentConfig.age || 18; // Get age from configuration
 
 			const validation = validateShiftTimes(shiftStart, shiftEnd);
@@ -169,31 +178,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	function initializeCalendarImportTab() {
-		const toggleConfigBtn = document.getElementById("toggle-config-calendar");
-		const configPanel = document.getElementById("config-panel-calendar");
-
-		if (!toggleConfigBtn || !configPanel) {
-			return; // Elements not available yet
-		}
-
 		// Prevent multiple initialization
 		if (calendarImportInitialized) {
 			return;
 		}
 		calendarImportInitialized = true;
-
-		// Toggle configuration panel for calendar tab
-		toggleConfigBtn.addEventListener("click", () => {
-			configPanel.classList.toggle("active");
-			if (configPanel.classList.contains("active")) {
-				toggleConfigBtn.textContent = "Hide Configuration Settings ▲";
-				toggleConfigBtn.classList.add("active");
-				populateConfigPanel(configPanel);
-			} else {
-				toggleConfigBtn.textContent = "Edit Configuration Settings ▼";
-				toggleConfigBtn.classList.remove("active");
-			}
-		});
 
 		// Initialize ICS import functionality
 		const icsContainer = document.querySelector(".ics-import-section");
@@ -217,6 +206,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			};
 		}
 	}
+
+	// Make populateConfigPanel globally available for ConfigToggle components
+	window.populateConfigPanel = populateConfigPanel;
 
 	function populateConfigPanel(panel) {
 		// Render editable configuration panel

@@ -56,10 +56,7 @@ export default function IcsImportSection(props = {}) {
 	}
 
 	return `
-		<div class="ics-import-section">
-			<h2>Import Shifts from Calendar <a href="https://quinyx.helpdocs.io/l/en/article/y5dybyykbi-mobile-web-calendar" target="_blank" class="info-link" title="Learn more about calendar integration">ℹ️</a></h2>
-			${form}
-			${results}
-		</div>
+		${form}
+		${results}
 	`;
 }

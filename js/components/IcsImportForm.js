@@ -13,7 +13,7 @@ export default function IcsImportForm(props = {}) {
 	return `
 		<div class="ics-form">
 			<div class="form-group">
-				<label for="ics-url">Calendar URL:</label>
+				<label for="ics-url">Calendar URL <a href="https://quinyx.helpdocs.io/l/en/article/y5dybyykbi-mobile-web-calendar" target="_blank" class="info-link" title="Learn more about calendar integration">ℹ️</a></label>
 				<input
 					type="url"
 					id="ics-url"
