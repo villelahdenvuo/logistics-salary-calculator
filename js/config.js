@@ -137,3 +137,13 @@ export function formatTime(date) {
 	const minutes = String(date.getMinutes()).padStart(2, "0");
 	return `${hours}:${minutes}`;
 }
+
+/**
+ * Default configuration structure
+ */
+export const defaultConfig = {
+	salaryConfig,
+	tyelRates,
+	tvmRate,
+	age: 18, // Default age for TyEL calculation
+};

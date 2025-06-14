@@ -14,7 +14,6 @@ import {
 document.addEventListener("DOMContentLoaded", () => {
 	const shiftStartInput = document.getElementById("shift-start");
 	const shiftEndInput = document.getElementById("shift-end");
-	const ageInput = document.getElementById("age");
 	const calculateBtn = document.getElementById("calculate-btn");
 	const resultsDiv = document.getElementById("results");
 	const resultsContent = document.getElementById("results-content");
@@ -70,7 +69,14 @@ document.addEventListener("DOMContentLoaded", () => {
 	function handleConfigInputChange(event) {
 		const input = event.target;
 		const path = input.dataset.configPath;
-		const value = parseFloat(input.value) || 0;
+		let value;
+
+		// Handle age as integer, others as float
+		if (path === "age") {
+			value = parseInt(input.value) || 18;
+		} else {
+			value = parseFloat(input.value) || 0;
+		}
 
 		// Update the current config in memory (for immediate feedback)
 		updateConfigInMemory(path, value);
@@ -122,12 +128,27 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	}
 
+	// Function to automatically calculate salary when both times are available
+	const autoCalculateIfReady = () => {
+		if (shiftStartInput.value && shiftEndInput.value) {
+			calculateBtn.click();
+		}
+	};
+
 	const calculateEndTime = (e, value, _sourceElement) => {
 		const endTime = calculateEndTimeFromStart(value, defaultShiftDuration);
 		if (endTime) {
 			shiftEndInput.value = formatDateForInput(endTime);
 			shiftEndInput.dispatchEvent(new Event("change"));
+
+			// Since we just set the end time and we know start time exists, trigger calculation
+			calculateBtn.click();
 		}
+	};
+
+	const handleEndTimeChange = (_e, _value, _sourceElement) => {
+		// Auto-calculate when end time changes and start time is also set
+		autoCalculateIfReady();
 	};
 
 	linkInputs([
@@ -141,21 +162,23 @@ document.addEventListener("DOMContentLoaded", () => {
 		{
 			element: shiftEndInput,
 			storageKey: "shiftEnd",
-		},
-		{
-			element: ageInput,
-			storageKey: "age",
+			options: {
+				onChange: handleEndTimeChange,
+			},
 		},
 	]);
 
 	if (shiftStartInput.value && !shiftEndInput.value) {
 		calculateEndTime(null, shiftStartInput.value, shiftStartInput);
+	} else if (shiftStartInput.value && shiftEndInput.value) {
+		// Auto-calculate if both times are already set
+		autoCalculateIfReady();
 	}
 
 	calculateBtn.addEventListener("click", () => {
 		const shiftStart = new Date(shiftStartInput.value);
 		const shiftEnd = new Date(shiftEndInput.value);
-		const age = parseInt(ageInput.value) || 18;
+		const age = currentConfig.age || 18; // Get age from configuration
 
 		const validation = validateShiftTimes(shiftStart, shiftEnd);
 		if (!validation.isValid) {
@@ -180,10 +203,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		displayResults(results, includeBreak, age);
 	});
-
-	if (shiftStartInput.value && shiftEndInput.value) {
-		calculateBtn.click();
-	}
 
 	function displayResults(results, includeBreak, age) {
 		resultsContent.innerHTML = Results({

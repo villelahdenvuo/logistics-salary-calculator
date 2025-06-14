@@ -100,7 +100,6 @@ button:hover {
 	display: flex;
 	justify-content: space-between;
 	padding: 8px 0;
-	border-bottom: 1px solid #eee;
 }
 
 .breakdown-item:last-child {
@@ -118,7 +117,6 @@ button:hover {
 	margin: 20px 0 12px;
 	font-size: 18px;
 	color: #444;
-	border-bottom: 1px solid #eee;
 	padding-bottom: 8px;
 }
 
@@ -273,21 +271,28 @@ button:hover {
 
 .config-item.editable {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
 	margin-bottom: 12px;
 	padding: 8px 0;
+	gap: 12px;
 }
 
 .config-item.editable label {
-	margin-bottom: 4px;
+	margin-bottom: 0;
 	font-weight: 500;
 	font-size: 14px;
+	flex: 1;
+	cursor: pointer;
 }
 
 .config-input-container {
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	flex: 1;
+	max-width: 200px;
 }
 
 .config-input {
