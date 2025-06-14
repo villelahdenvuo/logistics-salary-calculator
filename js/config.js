@@ -6,6 +6,12 @@
 // Default shift duration in hours
 export const defaultShiftDuration = 8;
 
+// Hosts that always require CORS proxy
+export const corsProxyHosts = [
+	"app.quinyx.com",
+	// Add other hosts here that are known to have CORS restrictions
+];
+
 // TyEL pension insurance rates for 2025
 export const tyelRates = {
 	under53: 7.15,
