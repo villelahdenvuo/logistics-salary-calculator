@@ -1,9 +1,9 @@
-import { linkInputs, persistInput } from "./storage.js";
+import { linkInputs } from "./storage.js";
 import EditableConfigPanel from "./components/EditableConfigPanel.js";
 import Results from "./components/Results.js";
 import { defaultShiftDuration, formatCurrency, formatNumber, formatTime } from "./config.js";
 import { loadConfig, saveConfig, resetConfig } from "./config-manager.js";
-import { initializeIcsImport } from "./ics-import.js";
+import { initializeIcsImport } from "./ics-handler.js";
 import {
 	calculateShiftSalary,
 	calculateEndTimeFromStart,
@@ -229,20 +229,23 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	}
 
-	// Initialize ICS import functionality with URL persistence
-	const icsUrlInput = document.getElementById("ics-url");
-	const fetchIcsBtn = document.getElementById("fetch-ics-btn");
-	const icsResults = document.getElementById("ics-results");
+	// Initialize ICS import functionality with component-based approach
+	const icsContainer = document.querySelector(".ics-import-section");
 
-	// Create storage handler for ICS URL
-	const icsUrlStorage = persistInput(icsUrlInput, "icsUrl", {
-		storageType: localStorage,
-		loadOnInit: true,
-		onChange: (e, value) => {
-			console.log(`ICS URL updated: ${value}`);
+	// Create simple storage handler for ICS URL
+	const icsUrlStorage = {
+		save() {
+			// This will be called by the handler when URL changes
 		},
-	});
+		load: () => localStorage.getItem("icsUrl") || "",
+		clear: () => localStorage.removeItem("icsUrl"),
+	};
 
-	// eslint-disable-next-line no-unused-vars
-	const icsImport = initializeIcsImport(icsUrlInput, fetchIcsBtn, icsResults, icsUrlStorage);
+	const icsImportHandler = initializeIcsImport(icsContainer, icsUrlStorage);
+
+	// Update the save method to reference the handler
+	icsUrlStorage.save = () => {
+		const url = icsImportHandler.getUrl();
+		if (url) localStorage.setItem("icsUrl", url);
+	};
 });

@@ -488,6 +488,19 @@ button:hover {
 	font-weight: 600;
 	color: #333;
 	border-bottom: 1px solid #ddd;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.week-toggle {
+	width: 18px;
+	height: 18px;
+	cursor: pointer;
+}
+
+.week-label {
+	flex: 1;
 }
 
 .week-days {
@@ -535,6 +548,8 @@ button:hover {
 	font-size: 11px;
 	position: relative;
 	transition: all 0.2s ease;
+	cursor: pointer;
+	user-select: none;
 }
 
 .shift-block.enabled {
@@ -577,6 +592,12 @@ button:hover {
 .shift-block:hover {
 	transform: translateY(-1px);
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	opacity: 0.9;
+}
+
+.shift-block:active {
+	transform: translateY(0);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive design for smaller screens */

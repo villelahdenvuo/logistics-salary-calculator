@@ -95,6 +95,7 @@ export async function fetchIcsData(url) {
  * Shows error message in the ICS results container
  * @param {HTMLElement} resultsContainer - The results container element
  * @param {string} message - Error message to display
+ * @deprecated Use IcsImportHandler instead
  */
 export function showIcsError(resultsContainer, message) {
 	resultsContainer.innerHTML = `<div class="error-message">${message}</div>`;
@@ -105,6 +106,7 @@ export function showIcsError(resultsContainer, message) {
  * Shows success message in the ICS results container
  * @param {HTMLElement} resultsContainer - The results container element
  * @param {string} message - Success message to display
+ * @deprecated Use IcsImportHandler instead
  */
 export function showIcsSuccess(resultsContainer, message) {
 	resultsContainer.innerHTML = `<div class="success-message">${message}</div>`;
@@ -115,6 +117,7 @@ export function showIcsSuccess(resultsContainer, message) {
  * Displays parsed ICS data in a weekly view
  * @param {HTMLElement} resultsContainer - The results container element
  * @param {string} data - Raw ICS data to parse and display
+ * @deprecated Use IcsImportHandler instead
  */
 export function displayIcsData(resultsContainer, data) {
 	console.log("🚀 Starting displayIcsData...");
@@ -167,6 +170,7 @@ export function displayIcsData(resultsContainer, data) {
  * @param {HTMLButtonElement} fetchButton - The fetch button element
  * @param {HTMLElement} resultsContainer - The results container element
  * @param {object} storageHandler - Storage handler object with save/load/clear methods (optional)
+ * @deprecated Use IcsImportHandler instead
  */
 export function initializeIcsImport(
 	urlInput,
@@ -277,6 +281,8 @@ export function parseIcsData(icsData) {
 
 			if (currentEvent.start && currentEvent.end) {
 				validEventCount++;
+				// Add a unique ID to each shift
+				currentEvent.id = `shift-${validEventCount}-${currentEvent.start.getTime()}`;
 				shifts.push(currentEvent);
 				console.log(`✅ Added valid shift #${validEventCount}`);
 			} else {
@@ -314,7 +320,7 @@ export function parseIcsData(icsData) {
 
 /**
  * Parses ICS datetime string to JavaScript Date object
- * @param {string} icsDateTime - ICS datetime string (YYYYMMDDTHHMMSS or YYYYMMDDTHHMMSSZ)
+ * @param {string} icsDateTime - ICS datetime string
  * @returns {Date} Parsed Date object
  */
 function parseIcsDateTime(icsDateTime) {
@@ -408,6 +414,7 @@ export function groupShiftsByWeek(shifts) {
  * Creates a weekly view component for displaying shifts
  * @param {Object} weeklyShifts - Grouped shifts by week
  * @returns {HTMLElement} The weekly view container element
+ * @deprecated Use WeeklyView component instead
  */
 export function createWeeklyView(weeklyShifts) {
 	console.log("🎨 Creating weekly view...");
@@ -441,6 +448,7 @@ export function createWeeklyView(weeklyShifts) {
  * @param {string} weekKey - Week identifier (YYYY-WWW)
  * @param {Object} weekData - Week data containing shifts
  * @returns {HTMLElement} Week element
+ * @deprecated Use WeekRow component instead
  */
 function createWeekElement(weekKey, weekData) {
 	const weekDiv = document.createElement("div");
@@ -477,6 +485,7 @@ function createWeekElement(weekKey, weekData) {
  * @param {number} year - Year
  * @param {number} week - ISO week number
  * @returns {Date} Monday date of the week
+ * @deprecated Use WeekRow component helper instead
  */
 function getMondayOfWeek(year, week) {
 	const jan4 = new Date(year, 0, 4);
@@ -495,6 +504,7 @@ function getMondayOfWeek(year, week) {
  * @param {Date} date - The date for this day
  * @param {Array} shifts - All shifts for the week
  * @returns {HTMLElement} Day element
+ * @deprecated Use DayBlock component instead
  */
 function createDayElement(date, shifts) {
 	const dayDiv = document.createElement("div");
@@ -539,6 +549,7 @@ function createDayElement(date, shifts) {
  * Creates a shift element
  * @param {Object} shift - Shift object
  * @returns {HTMLElement} Shift element
+ * @deprecated Use ShiftBlock component instead
  */
 function createShiftElement(shift) {
 	const shiftDiv = document.createElement("div");

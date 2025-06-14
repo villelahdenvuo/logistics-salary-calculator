@@ -1,5 +1,5 @@
 {
-	"cSpell.words": ["Lahdenvuo", "tyel", "Ville"],
+	"cSpell.words": ["DTEND", "DTSTART", "Lahdenvuo", "quinyx", "tyel", "VEVENT", "Ville"],
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.formatOnSave": true,
 	"editor.insertSpaces": false,
