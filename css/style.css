@@ -763,63 +763,403 @@ button:hover {
 	text-decoration: none;
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 768px) {
-	.week-days {
-		grid-template-columns: 1fr;
-	}
-
-	.day-block {
-		min-height: auto;
-		padding: 12px;
-	}
-
-	.day-header {
-		text-align: left;
-		font-size: 14px;
-	}
-
-	.shift-block {
-		padding: 10px;
-		font-size: 12px;
-	}
-
-	.shift-time {
-		font-size: 11px;
-	}
-
-	.shift-description {
-		font-size: 11px;
-		white-space: normal;
-	}
-
-	.shift-toggle {
-		width: 16px;
-		height: 16px;
-		top: 6px;
-		right: 6px;
-	}
-
-	.weekly-summary-details,
-	.overall-summary-details {
-		grid-template-columns: 1fr;
-	}
-
-	.shift-calculation {
-		font-size: 10px;
-	}
-
-	.overall-summary-header h3 {
-		font-size: 18px;
-	}
+/* Tabs component styles */
+.tabs-container {
+	margin-bottom: 20px;
 }
 
-@media (max-width: 480px) {
-	.week-days {
-		gap: 0;
-	}
+.tab-buttons {
+	display: flex;
+	background-color: #f8f9fa;
+	border-radius: 8px 8px 0 0;
+	border: 1px solid #ddd;
+	border-bottom: none;
+	overflow: hidden;
+}
 
-	.day-block {
-		padding: 8px;
-	}
+.tab-button {
+	background-color: transparent;
+	color: #666;
+	border: none;
+	padding: 12px 20px;
+	font-size: 14px;
+	cursor: pointer;
+	flex: 1;
+	transition: all 0.2s ease;
+	border-right: 1px solid #ddd;
+	margin: 0;
+	border-radius: 0;
+	width: auto;
+}
+
+.tab-button:last-child {
+	border-right: none;
+}
+
+.tab-button:hover {
+	background-color: #e9ecef;
+}
+
+.tab-button.active {
+	background-color: white;
+	color: #333;
+	font-weight: 600;
+	border-bottom: 2px solid #4caf50;
+}
+
+.tab-contents {
+	border: 1px solid #ddd;
+	border-radius: 0 0 8px 8px;
+	background-color: white;
+}
+
+.tab-content {
+	display: none;
+	padding: 20px;
+}
+
+.tab-content.active {
+	display: block;
+}
+
+/* Adjust existing styles to work within tabs */
+.tab-content .calculator-form {
+	margin-bottom: 0;
+}
+
+.tab-content .ics-import-section {
+	margin-bottom: 0;
+}
+
+.tab-content .ics-import-section h2 {
+	margin-top: 0;
+	margin-bottom: 20px;
+}
+
+/* Shared Salary Summary component styles */
+.salary-summary {
+	background-color: #ffffff;
+	border-radius: 8px;
+	padding: 20px;
+	margin-bottom: 20px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	border: 1px solid #e9ecef;
+}
+
+.summary-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #e9ecef;
+}
+
+.summary-header h3 {
+	margin: 0;
+	font-size: 18px;
+	color: #333;
+	font-weight: 600;
+}
+
+.shifts-count {
+	font-size: 14px;
+	color: #666;
+	background-color: #e9ecef;
+	padding: 4px 8px;
+	border-radius: 12px;
+}
+
+.summary-details {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.summary-row {
+	display: flex;
+	justify-content: space-between;
+	padding: 8px 0;
+	align-items: center;
+}
+
+.summary-label {
+	font-weight: 500;
+	color: #555;
+	font-size: 14px;
+}
+
+.summary-value {
+	font-weight: 600;
+	color: #333;
+	font-size: 14px;
+	text-align: right;
+}
+
+.summary-row.deduction .summary-value {
+	color: #e74c3c;
+}
+
+.summary-row.total {
+	border-top: 2px solid #ddd;
+	margin-top: 15px;
+	padding-top: 15px;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+.summary-row.total .summary-label {
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.summary-row.total .summary-value {
+	color: #2980b9;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.no-data {
+	text-align: center;
+	color: #666;
+	font-style: italic;
+	margin: 0;
+}
+
+/* Override specific styles for different summary types */
+.overall-summary {
+	border: 2px solid #4caf50;
+	background-color: #f8fff8;
+	box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
+}
+
+.overall-summary .summary-header h3 {
+	color: #2e7d32;
+	font-weight: 700;
+}
+
+.weekly-summary {
+	border-left: 4px solid #2196f3;
+	background-color: #f3f8ff;
+	border: 1px solid #e3f2fd;
+	padding: 12px 16px;
+	margin-bottom: 10px;
+	border-radius: 6px;
+}
+
+.weekly-summary .summary-header {
+	margin-bottom: 8px;
+	padding-bottom: 4px;
+}
+
+.weekly-summary .summary-header h3 {
+	color: #1565c0;
+	font-size: 16px;
+	margin: 0;
+}
+
+.weekly-summary .shifts-count {
+	font-size: 12px;
+	padding: 2px 6px;
+}
+
+.weekly-summary .summary-details {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 8px;
+}
+
+.weekly-summary .summary-row {
+	padding: 2px 0;
+}
+
+.weekly-summary .summary-label {
+	font-size: 12px;
+	color: #1565c0;
+}
+
+.weekly-summary .summary-value {
+	font-size: 12px;
+	font-weight: 600;
+	color: #0d47a1;
+}
+
+.weekly-summary .summary-row.total {
+	grid-column: 1 / -1;
+	border-top: 1px solid #2196f3;
+	margin-top: 4px;
+	padding-top: 6px;
+}
+
+.weekly-summary .summary-row.total .summary-label {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.weekly-summary .summary-row.total .summary-value {
+	font-size: 14px;
+	font-weight: 700;
+}
+
+/* Single shift specific styles - simplified to match calendar style */
+.shift-summary {
+	background-color: #e8f5e8;
+	border: 2px solid #4caf50;
+	border-radius: 8px;
+	padding: 20px;
+	margin-bottom: 20px;
+}
+
+.shift-summary .summary-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+	padding: 0;
+	border-bottom: none;
+	background: none;
+}
+
+.shift-summary .summary-header h3 {
+	color: #2e7d32;
+	font-weight: 600;
+	font-size: 20px;
+	margin: 0;
+}
+
+.shift-summary .summary-details {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	padding: 0;
+}
+
+.shift-summary .summary-row {
+	padding: 6px 0;
+	border-bottom: none;
+}
+
+.shift-summary .summary-label {
+	font-size: 14px;
+	color: #2e7d32;
+}
+
+.shift-summary .summary-value {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1b5e20;
+}
+
+.shift-summary .summary-row.deduction .summary-value {
+	color: #c62828;
+}
+
+.shift-summary .summary-row.total {
+	border-top: 2px solid #4caf50;
+	padding-top: 10px;
+	margin-top: 8px;
+	margin-left: 0;
+	margin-right: 0;
+	background: none;
+	border-radius: 0;
+	grid-column: 1 / -1;
+}
+
+.shift-summary .summary-row.total .summary-label {
+	font-size: 16px;
+	font-weight: 700;
+	color: #2e7d32;
+}
+
+.shift-summary .summary-row.total .summary-value {
+	font-size: 18px;
+	font-weight: 700;
+	color: #1b5e20;
+}
+
+/* Override base padding for shift summary */
+.shift-summary.salary-summary {
+	padding: 20px;
+}
+
+.detailed-breakdown {
+	margin-bottom: 20px;
+}
+
+.detailed-breakdown h3 {
+	color: #333;
+	margin-bottom: 15px;
+	font-size: 18px;
+}
+
+.detailed-breakdown .breakdown-item {
+	display: flex;
+	justify-content: space-between;
+	padding: 8px 0;
+}
+
+.detailed-breakdown .breakdown-item:last-child {
+	border-bottom: none;
+}
+
+.detailed-breakdown .total-row {
+	font-weight: bold;
+	border-top: 2px solid #ddd;
+	margin-top: 10px;
+	padding-top: 10px;
+}
+
+.detailed-breakdown h3 {
+	margin: 20px 0 12px;
+	font-size: 18px;
+	color: #444;
+	padding-bottom: 8px;
+}
+
+.detailed-hour-breakdown {
+	background-color: #f5f5f5;
+	border-radius: 6px;
+	padding: 12px;
+	margin-bottom: 10px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.detailed-hour-header {
+	display: flex;
+	justify-content: space-between;
+	font-weight: bold;
+	margin-bottom: 8px;
+	color: #333;
+}
+
+.detailed-hour-details {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	color: #555;
+	font-size: 0.95em;
+}
+
+.detailed-hour-emojis {
+	font-size: 1.2em;
+	margin-top: 5px;
+}
+
+.detailed-deduction {
+	color: #e74c3c;
+}
+
+.detailed-net-total {
+	font-weight: bold;
+	color: #2980b9;
+	border-top: 1px solid #ddd;
+	margin-top: 5px;
+	padding-top: 5px;
+}
+
+/* Fix for the detailed hourly breakdown spacing */
+.detailed-hour-details div {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
 }

@@ -1,6 +1,9 @@
 import { linkInputs } from "./storage.js";
 import EditableConfigPanel from "./components/EditableConfigPanel.js";
 import Results from "./components/Results.js";
+import Tabs, { initializeTabs } from "./components/Tabs.js";
+import SingleShiftTab from "./components/SingleShiftTab.js";
+import CalendarImportTab from "./components/CalendarImportTab.js";
 import { defaultShiftDuration, formatCurrency, formatNumber, formatTime } from "./config.js";
 import { loadConfig, saveConfig, resetConfig } from "./config-manager.js";
 import { initializeIcsImport } from "./ics-handler.js";
@@ -13,55 +16,233 @@ import {
 } from "./calculator-engine.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-	const shiftStartInput = document.getElementById("shift-start");
-	const shiftEndInput = document.getElementById("shift-end");
-	const calculateBtn = document.getElementById("calculate-btn");
-	const resultsDiv = document.getElementById("results");
-	const resultsContent = document.getElementById("results-content");
-	const toggleConfigBtn = document.getElementById("toggle-config");
-	const configPanel = document.getElementById("config-panel");
-
 	// Load current configuration
 	let currentConfig = loadConfig();
 
-	// Toggle configuration panel
-	toggleConfigBtn.addEventListener("click", () => {
-		configPanel.classList.toggle("active");
-		if (configPanel.classList.contains("active")) {
-			toggleConfigBtn.textContent = "Hide Configuration Settings ▲";
-			toggleConfigBtn.classList.add("active");
-			populateConfigPanel();
-		} else {
-			toggleConfigBtn.textContent = "Edit Configuration Settings ▼";
-			toggleConfigBtn.classList.remove("active");
-		}
+	// Create tabs
+	const tabsContainer = document.getElementById("main-tabs-container");
+	const tabs = [
+		{
+			id: "single-shift",
+			label: "Single Shift Calculator",
+			content: SingleShiftTab(),
+		},
+		{
+			id: "calendar-import",
+			label: "Calendar Import",
+			content: CalendarImportTab(),
+		},
+	];
+
+	// Render tabs
+	tabsContainer.innerHTML = Tabs({ tabs, activeTab: "single-shift" });
+
+	// Initialize tabs functionality
+	initializeTabs("#main-tabs-container", (activeTabId) => {
+		// Handle tab change logic if needed
+		console.log("Active tab changed to:", activeTabId);
+
+		// Re-initialize components when switching tabs
+		setTimeout(() => {
+			if (activeTabId === "single-shift") {
+				initializeSingleShiftTab();
+			} else if (activeTabId === "calendar-import") {
+				initializeCalendarImportTab();
+			}
+		}, 0);
 	});
 
-	function populateConfigPanel() {
+	// Initialize the default active tab
+	let singleShiftInitialized = false;
+	let calendarImportInitialized = false;
+
+	setTimeout(() => {
+		initializeSingleShiftTab();
+		initializeCalendarImportTab();
+	}, 0);
+
+	function initializeSingleShiftTab() {
+		const shiftStartInput = document.getElementById("shift-start");
+		const shiftEndInput = document.getElementById("shift-end");
+		const calculateBtn = document.getElementById("calculate-btn");
+		const toggleConfigBtn = document.getElementById("toggle-config");
+		const configPanel = document.getElementById("config-panel");
+
+		if (!shiftStartInput || !shiftEndInput || !calculateBtn || !toggleConfigBtn || !configPanel) {
+			return; // Elements not available yet
+		}
+
+		// Prevent multiple initialization
+		if (singleShiftInitialized) {
+			return;
+		}
+		singleShiftInitialized = true;
+
+		// Toggle configuration panel
+		toggleConfigBtn.addEventListener("click", () => {
+			configPanel.classList.toggle("active");
+			if (configPanel.classList.contains("active")) {
+				toggleConfigBtn.textContent = "Hide Configuration Settings ▲";
+				toggleConfigBtn.classList.add("active");
+				populateConfigPanel(configPanel);
+			} else {
+				toggleConfigBtn.textContent = "Edit Configuration Settings ▼";
+				toggleConfigBtn.classList.remove("active");
+			}
+		});
+
+		// Function to automatically calculate salary when both times are available
+		const autoCalculateIfReady = () => {
+			if (shiftStartInput.value && shiftEndInput.value) {
+				calculateBtn.click();
+			}
+		};
+
+		const calculateEndTime = (e, value, _sourceElement) => {
+			const endTime = calculateEndTimeFromStart(value, defaultShiftDuration);
+			if (endTime) {
+				shiftEndInput.value = formatDateForInput(endTime);
+				shiftEndInput.dispatchEvent(new Event("change"));
+
+				// Since we just set the end time and we know start time exists, trigger calculation
+				calculateBtn.click();
+			}
+		};
+
+		const handleEndTimeChange = (_e, _value, _sourceElement) => {
+			// Auto-calculate when end time changes and start time is also set
+			autoCalculateIfReady();
+		};
+
+		linkInputs([
+			{
+				element: shiftStartInput,
+				storageKey: "shiftStart",
+				options: {
+					onChange: calculateEndTime,
+				},
+			},
+			{
+				element: shiftEndInput,
+				storageKey: "shiftEnd",
+				options: {
+					onChange: handleEndTimeChange,
+				},
+			},
+		]);
+
+		if (shiftStartInput.value && !shiftEndInput.value) {
+			calculateEndTime(null, shiftStartInput.value, shiftStartInput);
+		} else if (shiftStartInput.value && shiftEndInput.value) {
+			// Auto-calculate if both times are already set
+			autoCalculateIfReady();
+		}
+
+		calculateBtn.addEventListener("click", () => {
+			const shiftStart = new Date(shiftStartInput.value);
+			const shiftEnd = new Date(shiftEndInput.value);
+			const age = currentConfig.age || 18; // Get age from configuration
+
+			const validation = validateShiftTimes(shiftStart, shiftEnd);
+			if (!validation.isValid) {
+				alert(validation.message);
+				return;
+			}
+
+			const includeBreak = shouldIncludeBreak(
+				shiftStart,
+				shiftEnd,
+				currentConfig.salaryConfig.breakDuration,
+			);
+			const results = calculateShiftSalary(
+				shiftStart,
+				shiftEnd,
+				currentConfig.salaryConfig,
+				includeBreak,
+				age,
+				currentConfig.tyelRates,
+				currentConfig.tvmRate,
+			);
+
+			displayResults(results, includeBreak, age);
+		});
+	}
+
+	function initializeCalendarImportTab() {
+		const toggleConfigBtn = document.getElementById("toggle-config-calendar");
+		const configPanel = document.getElementById("config-panel-calendar");
+
+		if (!toggleConfigBtn || !configPanel) {
+			return; // Elements not available yet
+		}
+
+		// Prevent multiple initialization
+		if (calendarImportInitialized) {
+			return;
+		}
+		calendarImportInitialized = true;
+
+		// Toggle configuration panel for calendar tab
+		toggleConfigBtn.addEventListener("click", () => {
+			configPanel.classList.toggle("active");
+			if (configPanel.classList.contains("active")) {
+				toggleConfigBtn.textContent = "Hide Configuration Settings ▲";
+				toggleConfigBtn.classList.add("active");
+				populateConfigPanel(configPanel);
+			} else {
+				toggleConfigBtn.textContent = "Edit Configuration Settings ▼";
+				toggleConfigBtn.classList.remove("active");
+			}
+		});
+
+		// Initialize ICS import functionality
+		const icsContainer = document.querySelector(".ics-import-section");
+
+		if (icsContainer) {
+			// Create simple storage handler for ICS URL
+			const icsUrlStorage = {
+				save() {
+					// This will be called by the handler when URL changes
+				},
+				load: () => localStorage.getItem("icsUrl") || "",
+				clear: () => localStorage.removeItem("icsUrl"),
+			};
+
+			const icsImportHandler = initializeIcsImport(icsContainer, icsUrlStorage);
+
+			// Update the save method to reference the handler
+			icsUrlStorage.save = () => {
+				const url = icsImportHandler.getUrl();
+				if (url) localStorage.setItem("icsUrl", url);
+			};
+		}
+	}
+
+	function populateConfigPanel(panel) {
 		// Render editable configuration panel
-		configPanel.innerHTML = EditableConfigPanel({
+		panel.innerHTML = EditableConfigPanel({
 			config: currentConfig,
 		});
 
 		// Add event listeners for config inputs
-		setupConfigEventListeners();
+		setupConfigEventListeners(panel);
 	}
 
-	function setupConfigEventListeners() {
+	function setupConfigEventListeners(panel) {
 		// Save configuration
-		const saveBtn = document.getElementById("save-config");
+		const saveBtn = panel.querySelector("#save-config");
 		if (saveBtn) {
 			saveBtn.addEventListener("click", saveConfiguration);
 		}
 
 		// Reset configuration
-		const resetBtn = document.getElementById("reset-config");
+		const resetBtn = panel.querySelector("#reset-config");
 		if (resetBtn) {
 			resetBtn.addEventListener("click", resetConfiguration);
 		}
 
 		// Input change handlers
-		const configInputs = document.querySelectorAll(".config-input");
+		const configInputs = panel.querySelectorAll(".config-input");
 		configInputs.forEach((input) => {
 			input.addEventListener("input", handleConfigInputChange);
 		});
@@ -108,7 +289,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	function resetConfiguration() {
 		try {
 			currentConfig = resetConfig();
-			populateConfigPanel(); // Re-render with default values
+			// Re-render all open config panels with default values
+			const openPanels = document.querySelectorAll(".config-panel.active");
+			openPanels.forEach((panel) => populateConfigPanel(panel));
 			showConfigStatus("Configuration reset to defaults", "success");
 		} catch (error) {
 			showConfigStatus("Failed to reset configuration", "error");
@@ -129,83 +312,16 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	}
 
-	// Function to automatically calculate salary when both times are available
-	const autoCalculateIfReady = () => {
-		if (shiftStartInput.value && shiftEndInput.value) {
-			calculateBtn.click();
-		}
-	};
+	function displayResults(results, includeBreak, age) {
+		// Find results elements within the single shift tab
+		const resultsDiv = document.getElementById("results");
+		const resultsContent = document.getElementById("results-content");
 
-	const calculateEndTime = (e, value, _sourceElement) => {
-		const endTime = calculateEndTimeFromStart(value, defaultShiftDuration);
-		if (endTime) {
-			shiftEndInput.value = formatDateForInput(endTime);
-			shiftEndInput.dispatchEvent(new Event("change"));
-
-			// Since we just set the end time and we know start time exists, trigger calculation
-			calculateBtn.click();
-		}
-	};
-
-	const handleEndTimeChange = (_e, _value, _sourceElement) => {
-		// Auto-calculate when end time changes and start time is also set
-		autoCalculateIfReady();
-	};
-
-	linkInputs([
-		{
-			element: shiftStartInput,
-			storageKey: "shiftStart",
-			options: {
-				onChange: calculateEndTime,
-			},
-		},
-		{
-			element: shiftEndInput,
-			storageKey: "shiftEnd",
-			options: {
-				onChange: handleEndTimeChange,
-			},
-		},
-	]);
-
-	if (shiftStartInput.value && !shiftEndInput.value) {
-		calculateEndTime(null, shiftStartInput.value, shiftStartInput);
-	} else if (shiftStartInput.value && shiftEndInput.value) {
-		// Auto-calculate if both times are already set
-		autoCalculateIfReady();
-	}
-
-	calculateBtn.addEventListener("click", () => {
-		const shiftStart = new Date(shiftStartInput.value);
-		const shiftEnd = new Date(shiftEndInput.value);
-		const age = currentConfig.age || 18; // Get age from configuration
-
-		const validation = validateShiftTimes(shiftStart, shiftEnd);
-		if (!validation.isValid) {
-			alert(validation.message);
+		if (!resultsDiv || !resultsContent) {
+			console.error("Results elements not found");
 			return;
 		}
 
-		const includeBreak = shouldIncludeBreak(
-			shiftStart,
-			shiftEnd,
-			currentConfig.salaryConfig.breakDuration,
-		);
-		const results = calculateShiftSalary(
-			shiftStart,
-			shiftEnd,
-			currentConfig.salaryConfig,
-			includeBreak,
-			age,
-			currentConfig.tyelRates,
-			currentConfig.tvmRate,
-		);
-
-		displayResults(results, includeBreak, age);
-	});
-
-	function displayResults(results, includeBreak, age) {
 		resultsContent.innerHTML = Results({
 			results,
 			config: currentConfig.salaryConfig,
@@ -228,24 +344,4 @@ document.addEventListener("DOMContentLoaded", () => {
 			});
 		}
 	}
-
-	// Initialize ICS import functionality with component-based approach
-	const icsContainer = document.querySelector(".ics-import-section");
-
-	// Create simple storage handler for ICS URL
-	const icsUrlStorage = {
-		save() {
-			// This will be called by the handler when URL changes
-		},
-		load: () => localStorage.getItem("icsUrl") || "",
-		clear: () => localStorage.removeItem("icsUrl"),
-	};
-
-	const icsImportHandler = initializeIcsImport(icsContainer, icsUrlStorage);
-
-	// Update the save method to reference the handler
-	icsUrlStorage.save = () => {
-		const url = icsImportHandler.getUrl();
-		if (url) localStorage.setItem("icsUrl", url);
-	};
 });

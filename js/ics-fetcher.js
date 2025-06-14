@@ -43,7 +43,8 @@ async function fetchDirect(url) {
  * @throws {Error} If the proxy fetch fails
  */
 async function fetchViaProxy(url) {
-	const proxyUrl = `https://api.cors.lol/?url=${encodeURIComponent(url)}`;
+	// const proxyUrl = `https://api.cors.lol/?url=${encodeURIComponent(url)}`;
+	const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
 	const response = await fetch(proxyUrl);
 
 	if (!response.ok) {

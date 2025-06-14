@@ -1,4 +1,5 @@
 import BreakdownItem from "./BreakdownItem.js";
+import SalarySummary from "./SalarySummary.js";
 
 /**
  * Renders the salary calculation summary section
@@ -13,66 +14,61 @@ import BreakdownItem from "./BreakdownItem.js";
  * @returns {string} - Component HTML
  */
 export default function ResultsSummary(props = {}) {
-	const { results, config, includeBreak, age, formatCurrency, formatNumber } = props;
+	const { results, config, includeBreak, formatCurrency, formatNumber } = props;
+
+	// Detailed breakdown section
+	const detailedBreakdown = `
+		<div class="detailed-breakdown">
+			<h3>Breakdown</h3>
+
+			${BreakdownItem({
+				label: "Base Hourly Wage:",
+				value: `${formatCurrency(results.baseSalary)} (${formatNumber(
+					results.totalHours,
+				)} × ${formatCurrency(config.baseSalary)})`,
+				emoji: "💵",
+			})}
+
+			${
+				includeBreak
+					? BreakdownItem({
+							label: "Unpaid Lunch Break:",
+							value: "-30 minutes",
+						})
+					: ""
+			}
+
+			${results.extras
+				.map((extra) =>
+					BreakdownItem({
+						label: `${extra.name}:`,
+						value: `${formatCurrency(extra.amount)} (${formatNumber(extra.hours)} h)`,
+						emoji: extra.emoji || "",
+					}),
+				)
+				.join("")}
+		</div>
+	`;
+
+	// Create totals object for SalarySummary
+	const totals = {
+		totalHours: results.totalHours,
+		baseSalary: results.baseSalary,
+		totalSalary: results.totalSalary,
+		tyelDeduction: results.tyelDeduction,
+		tvmDeduction: results.tvmDeduction,
+		netSalary: results.netSalary,
+	};
+
+	const summaryComponent = SalarySummary({
+		totals,
+		title: "Shift Summary",
+		className: "shift-summary",
+		showShiftCount: false,
+	});
 
 	return `
-    <h3>Summary</h3>
-
-    ${BreakdownItem({
-			label: "Base Hourly Wage:",
-			value: `${formatCurrency(results.baseSalary)} (${formatNumber(
-				results.totalHours,
-			)} × ${formatCurrency(config.baseSalary)})`,
-			emoji: "💵",
-		})}
-
-    ${
-			includeBreak
-				? BreakdownItem({
-						label: "Unpaid Lunch Break:",
-						value: "-30 minutes",
-					})
-				: ""
-		}
-
-    ${results.extras
-			.map((extra) =>
-				BreakdownItem({
-					label: `${extra.name}:`,
-					value: `${formatCurrency(extra.amount)} (${formatNumber(extra.hours)} h)`,
-					emoji: extra.emoji || "",
-				}),
-			)
-			.join("")}
-
-    ${BreakdownItem({
-			label: "Gross Total:",
-			value: formatCurrency(results.totalSalary),
-			className: "total-row",
-		})}
-
-    <h3>Deductions</h3>
-
-    ${
-			age && !isNaN(age) && results.tyelRate > 0
-				? BreakdownItem({
-						label: `TyEL Deduction (${results.tyelRate}%):`,
-						value: `-${formatCurrency(results.tyelDeduction)}`,
-						className: "deduction",
-					})
-				: ""
-		}
-
-    ${BreakdownItem({
-			label: `Unemployment Insurance (${results.tvmRate}%):`,
-			value: `-${formatCurrency(results.tvmDeduction)}`,
-			className: "deduction",
-		})}
-
-    ${BreakdownItem({
-			label: "Net Salary:",
-			value: formatCurrency(results.netSalary),
-			className: "net-total",
-		})}
-  `;
+		${detailedBreakdown}
+		${summaryComponent}
+	`;
 }
