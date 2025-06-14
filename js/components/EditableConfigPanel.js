@@ -19,8 +19,11 @@
 function EditableConfigItem(props = {}) {
 	const { label, path, value, type = "number", suffix = "", min, max, step = "0.01" } = props;
 
+	const inputId = `config-${path.replace(/\./g, "-")}`;
+
 	const inputAttributes = [
 		`type="${type}"`,
+		`id="${inputId}"`,
 		`data-config-path="${path}"`,
 		`value="${value}"`,
 		'class="config-input"',
@@ -32,7 +35,7 @@ function EditableConfigItem(props = {}) {
 
 	return `
 		<div class="config-item editable">
-			<label for="config-${path.replace(/\./g, "-")}">${label}</label>
+			<label for="${inputId}">${label}</label>
 			<div class="config-input-container">
 				<input ${inputAttributes.join(" ")} />
 				${suffix ? `<span class="config-suffix">${suffix}</span>` : ""}
@@ -80,6 +83,15 @@ export default function EditableConfigPanel(props = {}) {
 
 		<div class="config-section">
 			<h4>Deduction Rates (2025)</h4>
+			${EditableConfigItem({
+				label: "Age (for TyEL calculation):",
+				path: "age",
+				value: config.age,
+				suffix: "years",
+				min: 18,
+				max: 100,
+				step: "1",
+			})}
 			${EditableConfigItem({
 				label: "TyEL Rate (under 53):",
 				path: "tyelRates.under53",

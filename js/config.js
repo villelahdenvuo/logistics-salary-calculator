@@ -6,6 +6,12 @@
 // Default shift duration in hours
 export const defaultShiftDuration = 8;
 
+// Hosts that always require CORS proxy
+export const corsProxyHosts = [
+	"app.quinyx.com",
+	// Add other hosts here that are known to have CORS restrictions
+];
+
 // TyEL pension insurance rates for 2025
 export const tyelRates = {
 	under53: 7.15,
@@ -20,6 +26,7 @@ export const tvmRate = 0.59;
 export const salaryConfig = {
 	baseSalary: 12.95,
 	breakDuration: 30, // 30 minutes for lunch break
+	breakThreshold: 360, // Include break for shifts longer than 6 hours (360 minutes)
 	extras: {
 		eveningWeekday: {
 			name: "Evening Bonus Weekdays (Mon-Fri 18-22)",
@@ -137,3 +144,13 @@ export function formatTime(date) {
 	const minutes = String(date.getMinutes()).padStart(2, "0");
 	return `${hours}:${minutes}`;
 }
+
+/**
+ * Default configuration structure
+ */
+export const defaultConfig = {
+	salaryConfig,
+	tyelRates,
+	tvmRate,
+	age: 18, // Default age for TyEL calculation
+};

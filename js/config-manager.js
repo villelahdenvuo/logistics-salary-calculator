@@ -3,22 +3,9 @@
  * Handles loading, saving, and merging configuration values with localStorage
  */
 
-import {
-	salaryConfig as defaultSalaryConfig,
-	tyelRates as defaultTyelRates,
-	tvmRate as defaultTvmRate,
-} from "./config.js";
+import { defaultConfig } from "./config.js";
 
 const CONFIG_STORAGE_KEY = "logistics-calculator-config";
-
-/**
- * Default configuration structure
- */
-const defaultConfig = {
-	salaryConfig: defaultSalaryConfig,
-	tyelRates: defaultTyelRates,
-	tvmRate: defaultTvmRate,
-};
 
 /**
  * Load configuration from localStorage, merging with defaults
@@ -107,6 +94,11 @@ function mergeConfig(defaultConfig, userConfig) {
 	// Merge tvmRate
 	if (userConfig.tvmRate !== undefined) {
 		merged.tvmRate = userConfig.tvmRate;
+	}
+
+	// Merge age
+	if (userConfig.age !== undefined) {
+		merged.age = userConfig.age;
 	}
 
 	return merged;
