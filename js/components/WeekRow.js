@@ -42,9 +42,10 @@ export default function WeekRow(props = {}) {
 	const allShifts = weekData.shifts || [];
 	const enabledShifts = allShifts.filter((shift) => shift.isEnabled);
 	const allEnabled = allShifts.length > 0 && enabledShifts.length === allShifts.length;
+	const someEnabled = enabledShifts.length > 0 && enabledShifts.length < allShifts.length;
 
 	return `
-		<div class="week-row" data-week-key="${weekKey}">
+		<div class="week-row" data-week-key="${weekKey}" data-all-enabled="${allEnabled}" data-some-enabled="${someEnabled}">
 			<div class="week-header">
 				<input type="checkbox" class="week-toggle" ${allEnabled ? "checked" : ""}>
 				<span class="week-label">${weekKey} (${weekData.year})</span>
