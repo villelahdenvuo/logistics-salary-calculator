@@ -11,7 +11,7 @@ body {
 }
 
 .container {
-	max-width: 800px;
+	max-width: 1200px;
 	margin: 0 auto;
 	background-color: white;
 	padding: 20px;
@@ -76,7 +76,6 @@ button:hover {
 }
 
 .results {
-	border-top: 1px solid #eee;
 	padding-top: 20px;
 	display: none;
 }
@@ -92,7 +91,6 @@ button:hover {
 
 .results-content {
 	background-color: #f9f9f9;
-	border: 1px solid #eee;
 	padding: 15px;
 	border-radius: 4px;
 }
@@ -413,7 +411,6 @@ button:hover {
 
 .ics-form {
 	background-color: #f9f9f9;
-	border: 1px solid #eee;
 	padding: 15px;
 	border-radius: 4px;
 }
@@ -422,7 +419,6 @@ button:hover {
 	margin-top: 15px;
 	padding: 10px;
 	background-color: white;
-	border: 1px solid #ddd;
 	border-radius: 4px;
 	display: none;
 }
@@ -462,7 +458,6 @@ button:hover {
 /* Weekly View Styles */
 .weekly-view {
 	margin-top: 15px;
-	border: 1px solid #ddd;
 	border-radius: 6px;
 	overflow: hidden;
 }
@@ -600,6 +595,174 @@ button:hover {
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+/* Calculation Display Styles */
+.shift-calculation {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 5px;
+	padding-top: 5px;
+	border-top: 1px solid rgba(0, 0, 0, 0.1);
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.shift-hours {
+	color: #666;
+}
+
+.shift-salary {
+	color: #2e7d32;
+	font-weight: 700;
+}
+
+/* Weekly Summary Styles */
+.weekly-summary {
+	margin-top: 15px;
+	padding: 15px;
+	background-color: #f8f9fa;
+	border-radius: 6px;
+	border-left: 4px solid #2196f3;
+}
+
+.weekly-summary-details {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+
+.summary-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 4px 0;
+}
+
+.summary-label {
+	font-size: 13px;
+	color: #555;
+}
+
+.summary-value {
+	font-size: 13px;
+	font-weight: 600;
+	color: #333;
+}
+
+.summary-row.deduction .summary-value {
+	color: #d32f2f;
+}
+
+.summary-row.total {
+	border-top: 1px solid #ddd;
+	padding-top: 8px;
+	margin-top: 4px;
+	grid-column: 1 / -1;
+}
+
+.summary-row.total .summary-label {
+	font-weight: 600;
+	color: #333;
+}
+
+.summary-row.total .summary-value {
+	font-size: 15px;
+	font-weight: 700;
+	color: #2e7d32;
+}
+
+/* Overall Summary Styles */
+.overall-summary {
+	margin-top: 25px;
+	padding: 20px;
+	background-color: #e8f5e8;
+	border-radius: 8px;
+	border: 2px solid #4caf50;
+}
+
+.overall-summary-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+}
+
+.overall-summary-header h3 {
+	margin: 0;
+	color: #2e7d32;
+	font-size: 20px;
+}
+
+.overall-summary .shifts-count {
+	background-color: #c8e6c9;
+	color: #1b5e20;
+	font-weight: 600;
+}
+
+.overall-summary-details {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+.overall-summary .summary-row {
+	padding: 6px 0;
+}
+
+.overall-summary .summary-label {
+	font-size: 14px;
+	color: #2e7d32;
+}
+
+.overall-summary .summary-value {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1b5e20;
+}
+
+.overall-summary .summary-row.deduction .summary-value {
+	color: #c62828;
+}
+
+.overall-summary .summary-row.total {
+	border-top: 2px solid #4caf50;
+	padding-top: 10px;
+	margin-top: 8px;
+}
+
+.overall-summary .summary-row.total .summary-label {
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.overall-summary .summary-row.total .summary-value {
+	font-size: 18px;
+	font-weight: 700;
+	color: #1b5e20;
+}
+
+.overall-summary .no-shifts {
+	text-align: center;
+	color: #666;
+	font-style: italic;
+	margin: 0;
+}
+
+/* Info link styling */
+.info-link {
+	color: #2196f3;
+	text-decoration: none;
+	font-size: 16px;
+	margin-left: 8px;
+	vertical-align: middle;
+	transition: color 0.3s ease;
+}
+
+.info-link:hover {
+	color: #0d7377;
+	text-decoration: none;
+}
+
 /* Responsive design for smaller screens */
 @media (max-width: 768px) {
 	.week-days {
@@ -635,6 +798,19 @@ button:hover {
 		height: 16px;
 		top: 6px;
 		right: 6px;
+	}
+
+	.weekly-summary-details,
+	.overall-summary-details {
+		grid-template-columns: 1fr;
+	}
+
+	.shift-calculation {
+		font-size: 10px;
+	}
+
+	.overall-summary-header h3 {
+		font-size: 18px;
 	}
 }
 

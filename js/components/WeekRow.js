@@ -1,4 +1,5 @@
 import DayBlock from "./DayBlock.js";
+import WeeklySummary from "./WeeklySummary.js";
 
 /**
  * Renders a week row with all its days
@@ -9,10 +10,11 @@ import DayBlock from "./DayBlock.js";
  * @param {number} props.weekData.year - Year
  * @param {number} props.weekData.week - Week number
  * @param {Array} props.weekData.shifts - Array of shifts for the week
+ * @param {object} props.weekTotal - Weekly calculation total (optional)
  * @returns {string} - Component HTML
  */
 export default function WeekRow(props = {}) {
-	const { weekKey, weekData } = props;
+	const { weekKey, weekData, weekTotal } = props;
 
 	if (!weekKey || !weekData) return "";
 
@@ -53,6 +55,7 @@ export default function WeekRow(props = {}) {
 			<div class="week-days">
 				${dayBlocks.join("")}
 			</div>
+			${weekTotal ? WeeklySummary({ weekTotal }) : ""}
 		</div>
 	`;
 }

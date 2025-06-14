@@ -5,6 +5,8 @@
 
 import { fetchIcsData } from "./ics-fetcher.js";
 import { parseIcsData, groupShiftsByWeek } from "./ics-parser.js";
+import { calculateShiftSalary, shouldIncludeBreak } from "./calculator-engine.js";
+import { loadConfig } from "./config-manager.js";
 
 /**
  * Global shifts storage
@@ -41,6 +43,7 @@ export function getGlobalEnabledShifts() {
 export class IcsStateManager {
 	constructor(storageHandler = null) {
 		this.storageHandler = storageHandler;
+		this.config = loadConfig(); // Load calculation configuration
 		this.state = {
 			icsUrl: "",
 			isLoading: false,
@@ -49,6 +52,8 @@ export class IcsStateManager {
 			weeklyShifts: {},
 			totalShifts: 0,
 			shifts: [],
+			weeklyTotals: {},
+			grandTotal: null,
 		};
 
 		this.observers = [];
@@ -139,6 +144,8 @@ export class IcsStateManager {
 			weeklyShifts: {},
 			totalShifts: 0,
 			shifts: [],
+			weeklyTotals: {},
+			grandTotal: null,
 		});
 		if (this.storageHandler) {
 			this.storageHandler.clear();
@@ -168,12 +175,28 @@ export class IcsStateManager {
 	 */
 	updateShiftEnabled(shiftId, isEnabled) {
 		const shiftIndex = this.state.shifts.findIndex((shift) => shift.id === shiftId);
+
 		if (shiftIndex !== -1) {
 			const updatedShifts = [...this.state.shifts];
-			updatedShifts[shiftIndex] = { ...updatedShifts[shiftIndex], isEnabled };
+			updatedShifts[shiftIndex] = {
+				...updatedShifts[shiftIndex],
+				isEnabled,
+				calculation: isEnabled ? this.calculateShiftSalary(updatedShifts[shiftIndex]) : null,
+			};
 
-			// Update state silently to avoid re-render
-			this.setState({ shifts: updatedShifts }, true);
+			// Update the weeklyShifts structure to reflect the change
+			const updatedWeeklyShifts = this.updateWeeklyShiftsData(updatedShifts);
+
+			// Calculate totals with updated shifts
+			const { weeklyTotals, grandTotal } = this.calculateTotalsForShifts(updatedShifts);
+
+			// Update state and notify observers in one go
+			this.setState({
+				shifts: updatedShifts,
+				weeklyShifts: updatedWeeklyShifts,
+				weeklyTotals,
+				grandTotal,
+			});
 			setGlobalShifts(updatedShifts);
 			return true;
 		}
@@ -192,14 +215,21 @@ export class IcsStateManager {
 		weekShifts.forEach((weekShift) => {
 			const shiftIndex = updatedShifts.findIndex((shift) => shift.id === weekShift.id);
 			if (shiftIndex !== -1) {
-				updatedShifts[shiftIndex] = { ...updatedShifts[shiftIndex], isEnabled };
+				updatedShifts[shiftIndex] = {
+					...updatedShifts[shiftIndex],
+					isEnabled,
+					calculation: isEnabled ? this.calculateShiftSalary(updatedShifts[shiftIndex]) : null,
+				};
 				hasChanges = true;
 			}
 		});
 
 		if (hasChanges) {
-			// Update state silently to avoid re-render
-			this.setState({ shifts: updatedShifts }, true);
+			// Calculate totals with updated shifts
+			const { weeklyTotals, grandTotal } = this.calculateTotalsForShifts(updatedShifts);
+
+			// Update state and notify observers in one go
+			this.setState({ shifts: updatedShifts, weeklyTotals, grandTotal });
 			setGlobalShifts(updatedShifts);
 		}
 		return hasChanges;
@@ -213,10 +243,13 @@ export class IcsStateManager {
 
 		if (!icsUrl) {
 			this.setState({
-				message: "Please enter a valid ICS file URL",
+				icsUrl: "",
+				message: "Please enter a valid calendar URL",
 				messageType: "error",
 				weeklyShifts: {},
 				totalShifts: 0,
+				weeklyTotals: {},
+				grandTotal: null,
 			});
 			return;
 		}
@@ -247,38 +280,255 @@ export class IcsStateManager {
 			const shifts = parseIcsData(result.data);
 			console.log("🚀 Parsed shifts:", shifts);
 
+			// Calculate salaries for enabled shifts
+			console.log("🚀 Calculating shift salaries...");
+			const shiftsWithCalculations = shifts.map((shift) => ({
+				...shift,
+				calculation: shift.isEnabled ? this.calculateShiftSalary(shift) : null,
+			}));
+
 			console.log("🚀 Grouping shifts by week...");
-			const weeklyShifts = groupShiftsByWeek(shifts);
+			const weeklyShifts = groupShiftsByWeek(shiftsWithCalculations);
 			console.log("🚀 Weekly shifts:", weeklyShifts);
 
 			// Store shifts globally and in state
-			setGlobalShifts(shifts);
+			setGlobalShifts(shiftsWithCalculations);
+
+			// Calculate totals for enabled shifts
+			const { weeklyTotals, grandTotal } = this.calculateTotalsForShifts(shiftsWithCalculations);
 
 			const successMessage = result.usedProxy
-				? "ICS file fetched successfully via CORS proxy!"
-				: "ICS file fetched successfully!";
+				? "Calendar fetched successfully via CORS proxy!"
+				: "Calendar fetched successfully!";
 
 			this.setState({
 				isLoading: false,
-				buttonText: "Fetch ICS Data",
+				buttonText: "Fetch Calendar Data",
 				message: successMessage,
 				messageType: "success",
 				weeklyShifts,
-				totalShifts: shifts.length,
-				shifts,
+				totalShifts: shiftsWithCalculations.length,
+				shifts: shiftsWithCalculations,
+				weeklyTotals,
+				grandTotal,
 			});
 
 			console.log("✅ ICS import completed successfully");
 		} catch (error) {
-			console.error("❌ Error fetching ICS file:", error);
+			console.error("❌ Error fetching calendar:", error);
 			this.setState({
 				isLoading: false,
-				buttonText: "Fetch ICS Data",
-				message: `Failed to fetch ICS file: ${error.message}`,
+				buttonText: "Fetch Calendar Data",
+				message: `Failed to fetch calendar: ${error.message}`,
 				messageType: "error",
 				weeklyShifts: {},
 				totalShifts: 0,
+				weeklyTotals: {},
+				grandTotal: null,
 			});
 		}
+	}
+
+	/**
+	 * Calculate salary for a single shift
+	 * @param {Object} shift - Shift object with start and end times
+	 * @returns {Object} Calculation results
+	 */ calculateShiftSalary(shift) {
+		const includeBreak = shouldIncludeBreak(
+			shift.start,
+			shift.end,
+			this.config.salaryConfig.breakThreshold,
+		);
+
+		return calculateShiftSalary(
+			shift.start,
+			shift.end,
+			this.config.salaryConfig,
+			includeBreak,
+			this.config.age,
+			this.config.tyelRates,
+			this.config.tvmRate,
+		);
+	}
+
+	/**
+	 * Calculate totals for enabled shifts
+	 * @param {Array} shifts - Array of shifts to calculate totals for (optional, uses state.shifts if not provided)
+	 * @returns {Object} Total calculations including weekly breakdown
+	 */
+	calculateTotals() {
+		return this.calculateTotalsForShifts(this.state.shifts);
+	}
+
+	/**
+	 * Calculate totals for given shifts array
+	 * @param {Array} shifts - Array of shifts to calculate totals for
+	 * @returns {Object} Total calculations including weekly breakdown
+	 */
+	calculateTotalsForShifts(shifts) {
+		const enabledShifts = shifts.filter((shift) => shift.isEnabled);
+		const weeklyTotals = {};
+		const grandTotal = {
+			totalHours: 0,
+			baseSalary: 0,
+			totalSalary: 0,
+			tyelDeduction: 0,
+			tvmDeduction: 0,
+			netSalary: 0,
+			shiftsCount: 0,
+		};
+
+		// Group shifts by week and calculate totals
+		enabledShifts.forEach((shift) => {
+			if (!shift.calculation) return;
+
+			const weekKey = this.getWeekKey(shift.start);
+
+			if (!weeklyTotals[weekKey]) {
+				weeklyTotals[weekKey] = {
+					totalHours: 0,
+					baseSalary: 0,
+					totalSalary: 0,
+					tyelDeduction: 0,
+					tvmDeduction: 0,
+					netSalary: 0,
+					shiftsCount: 0,
+				};
+			}
+
+			// Add to weekly total
+			weeklyTotals[weekKey].totalHours += shift.calculation.totalHours;
+			weeklyTotals[weekKey].baseSalary += shift.calculation.baseSalary;
+			weeklyTotals[weekKey].totalSalary += shift.calculation.totalSalary;
+			weeklyTotals[weekKey].tyelDeduction += shift.calculation.tyelDeduction;
+			weeklyTotals[weekKey].tvmDeduction += shift.calculation.tvmDeduction;
+			weeklyTotals[weekKey].netSalary += shift.calculation.netSalary;
+			weeklyTotals[weekKey].shiftsCount += 1;
+
+			// Add to grand total
+			grandTotal.totalHours += shift.calculation.totalHours;
+			grandTotal.baseSalary += shift.calculation.baseSalary;
+			grandTotal.totalSalary += shift.calculation.totalSalary;
+			grandTotal.tyelDeduction += shift.calculation.tyelDeduction;
+			grandTotal.tvmDeduction += shift.calculation.tvmDeduction;
+			grandTotal.netSalary += shift.calculation.netSalary;
+			grandTotal.shiftsCount += 1;
+		});
+
+		// Return null for grandTotal if no enabled shifts
+		return {
+			weeklyTotals,
+			grandTotal: grandTotal.shiftsCount > 0 ? grandTotal : null,
+		};
+	}
+
+	/**
+	 * Get week key for a date (YYYY-WWW format)
+	 * @param {Date} date - Date to get week key for
+	 * @returns {string} Week key
+	 */
+	getWeekKey(date) {
+		const year = date.getFullYear();
+		const week = this.getISOWeek(date);
+		return `${year}-W${String(week).padStart(2, "0")}`;
+	}
+
+	/**
+	 * Get ISO week number for a date
+	 * @param {Date} date - Date to get week for
+	 * @returns {number} ISO week number
+	 */
+	getISOWeek(date) {
+		const target = new Date(date.valueOf());
+		const dayNr = (date.getDay() + 6) % 7;
+		target.setDate(target.getDate() - dayNr + 3);
+		const firstThursday = target.valueOf();
+		target.setMonth(0, 1);
+		if (target.getDay() !== 4) {
+			target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+		}
+		return 1 + Math.ceil((firstThursday - target) / 604800000);
+	}
+
+	/**
+	 * Recalculate all shift salaries
+	 */
+	recalculateShifts() {
+		const updatedShifts = this.state.shifts.map((shift) => ({
+			...shift,
+			calculation: shift.isEnabled ? this.calculateShiftSalary(shift) : null,
+		}));
+
+		// Calculate totals with updated shifts
+		const { weeklyTotals, grandTotal } = this.calculateTotalsForShifts(updatedShifts);
+
+		this.setState({ shifts: updatedShifts, weeklyTotals, grandTotal }, true);
+		setGlobalShifts(updatedShifts);
+	}
+
+	/**
+	 * Update multiple shifts' enabled state in a batch
+	 * @param {Array} updates - Array of {shiftId, isEnabled} objects
+	 */
+	updateMultipleShifts(updates) {
+		const updatedShifts = [...this.state.shifts];
+		let hasChanges = false;
+
+		updates.forEach(({ shiftId, isEnabled }) => {
+			const shiftIndex = updatedShifts.findIndex((shift) => shift.id === shiftId);
+			if (shiftIndex !== -1) {
+				updatedShifts[shiftIndex] = {
+					...updatedShifts[shiftIndex],
+					isEnabled,
+					calculation: isEnabled ? this.calculateShiftSalary(updatedShifts[shiftIndex]) : null,
+				};
+				hasChanges = true;
+			}
+		});
+
+		if (hasChanges) {
+			// Update the weeklyShifts structure to reflect the changes
+			const updatedWeeklyShifts = this.updateWeeklyShiftsData(updatedShifts);
+
+			// Calculate totals with updated shifts
+			const { weeklyTotals, grandTotal } = this.calculateTotalsForShifts(updatedShifts);
+
+			// Update state and notify observers
+			this.setState({
+				shifts: updatedShifts,
+				weeklyShifts: updatedWeeklyShifts,
+				weeklyTotals,
+				grandTotal,
+			});
+			setGlobalShifts(updatedShifts);
+		}
+		return hasChanges;
+	}
+
+	/**
+	 * Update the weeklyShifts structure with current shift data
+	 * @param {Array} shifts - Current shifts array
+	 * @returns {Object} Updated weeklyShifts structure
+	 */
+	updateWeeklyShiftsData(shifts) {
+		const weeklyShifts = {};
+
+		shifts.forEach((shift) => {
+			const weekKey = this.getWeekKey(shift.start);
+
+			if (!weeklyShifts[weekKey]) {
+				const year = shift.start.getFullYear();
+				const week = this.getISOWeek(shift.start);
+				weeklyShifts[weekKey] = {
+					year,
+					week,
+					shifts: [],
+				};
+			}
+
+			weeklyShifts[weekKey].shifts.push(shift);
+		});
+
+		return weeklyShifts;
 	}
 }

@@ -3,76 +3,106 @@
  * Handles DOM events and UI interactions for ICS import functionality
  */
 
+import { EventDelegator } from "./components/EventDelegator.js";
+
 /**
  * ICS Event Handler class
  */
 export class IcsEventHandler {
-	constructor(container, stateManager) {
+	constructor(container, stateManager, icsHandler = null) {
 		this.container = container;
 		this.stateManager = stateManager;
+		this.icsHandler = icsHandler; // Reference to parent handler for updates
+		this.delegator = new EventDelegator(container);
+		this.isUpdating = false; // Prevent multiple simultaneous updates
 
 		this.init();
 	}
 
 	init() {
-		this.attachEventListeners();
-	}
-
-	/**
-	 * Attach all event listeners
-	 */
-	attachEventListeners() {
-		this.attachFormListeners();
-		this.attachShiftToggleListeners();
-		this.attachWeekToggleListeners();
+		this.setupEventDelegation();
 		this.setInitialWeekToggleStates();
 	}
 
 	/**
-	 * Attach form-related event listeners
+	 * Set up event delegation for all UI interactions
+	 * This replaces the need for manual event listener attachment
 	 */
-	attachFormListeners() {
-		const urlInput = this.container.querySelector("#ics-url");
-		const fetchButton = this.container.querySelector("#fetch-ics-btn");
+	setupEventDelegation() {
+		// ICS URL input changes
+		this.delegator.onInput("#ics-url", (e) => {
+			this.stateManager.setUrl(e.target.value);
+		});
 
-		if (urlInput && fetchButton) {
-			// Remove existing listeners by cloning the button
-			const newFetchButton = fetchButton.cloneNode(true);
-			fetchButton.parentNode.replaceChild(newFetchButton, fetchButton);
+		// Fetch ICS button
+		this.delegator.onClick("#fetch-ics-btn", () => {
+			this.stateManager.fetchAndParseIcs();
+		});
 
-			// URL input change handler
-			urlInput.addEventListener("input", (e) => {
-				this.stateManager.setUrl(e.target.value);
-			});
+		// Individual shift toggles
+		this.delegator.onChange(".shift-toggle", (e) => {
+			if (this.isUpdating) {
+				return;
+			}
 
-			// Fetch button click handler
-			newFetchButton.addEventListener("click", () => {
-				this.stateManager.fetchAndParseIcs();
-			});
-		}
-	}
+			const shiftBlock = e.target.closest(".shift-block");
+			const shiftId = shiftBlock ? shiftBlock.dataset.shiftId : null;
 
-	/**
-	 * Attach shift toggle event listeners
-	 */
-	attachShiftToggleListeners() {
-		const shiftToggles = this.container.querySelectorAll(".shift-toggle");
-		shiftToggles.forEach((toggle) => {
-			toggle.addEventListener("change", (e) => {
-				const shiftBlock = toggle.closest(".shift-block");
+			if (shiftId) {
+				this.isUpdating = true;
+				// Only update the state - the re-render will handle the visual updates
+				this.stateManager.updateShiftEnabled(shiftId, e.target.checked);
+
+				// Reset flag after a short delay to allow re-render to complete
+				setTimeout(() => {
+					this.isUpdating = false;
+				}, 100);
+			}
+		});
+
+		// Allow clicking on shift block to toggle checkbox
+		this.delegator.onClick(".shift-block", (e) => {
+			// Don't toggle if the click was on the checkbox itself
+			if (e.target.classList.contains("shift-toggle")) {
+				return;
+			}
+
+			if (this.isUpdating) {
+				return;
+			}
+
+			const shiftBlock = e.target.closest(".shift-block");
+			const checkbox = shiftBlock ? shiftBlock.querySelector(".shift-toggle") : null;
+
+			if (checkbox) {
+				// Toggle the checkbox - this will trigger the change event above
+				checkbox.checked = !checkbox.checked;
+				checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+			}
+		});
+
+		// Week toggles (select/deselect all shifts in a week)
+		this.delegator.onChange(".week-toggle", (e) => {
+			const weekRow = e.target.closest(".week-row");
+			if (!weekRow) return;
+
+			const isChecked = e.target.checked;
+			const shiftToggles = weekRow.querySelectorAll(".shift-toggle");
+
+			// Collect shift IDs and prepare batch update
+			const updates = [];
+			shiftToggles.forEach((shiftToggle) => {
+				const shiftBlock = shiftToggle.closest(".shift-block");
 				const shiftId = shiftBlock ? shiftBlock.dataset.shiftId : null;
-
 				if (shiftId) {
-					const success = this.stateManager.updateShiftEnabled(shiftId, e.target.checked);
-					if (success) {
-						// Update DOM immediately without triggering re-render
-						shiftBlock.className = `shift-block ${e.target.checked ? "enabled" : "disabled"}`;
-
-						// Update week toggle state
-						this.updateWeekToggleState(toggle);
-					}
+					updates.push({ shiftId, isEnabled: isChecked });
 				}
 			});
+
+			// Update all shifts in this week in a single batch
+			if (updates.length > 0) {
+				this.stateManager.updateMultipleShifts(updates);
+			}
 		});
 	}
 
@@ -98,69 +128,19 @@ export class IcsEventHandler {
 	}
 
 	/**
-	 * Attach week toggle event listeners
-	 */
-	attachWeekToggleListeners() {
-		const weekToggles = this.container.querySelectorAll(".week-toggle");
-		weekToggles.forEach((toggle) => {
-			toggle.addEventListener("change", (e) => {
-				const weekRow = e.target.closest(".week-row");
-				if (!weekRow) return;
-
-				const isChecked = e.target.checked;
-				const shiftToggles = weekRow.querySelectorAll(".shift-toggle");
-
-				// Collect the shifts for this week
-				const weekShifts = [];
-
-				// Update all shift toggles in this week and collect shift data
-				shiftToggles.forEach((shiftToggle) => {
-					if (shiftToggle.checked !== isChecked) {
-						shiftToggle.checked = isChecked;
-
-						// Find the shift data
-						const shiftBlock = shiftToggle.closest(".shift-block");
-						const shiftId = shiftBlock ? shiftBlock.dataset.shiftId : null;
-
-						if (shiftId) {
-							const shifts = this.stateManager.getShifts();
-							const shift = shifts.find((s) => s.id === shiftId);
-							if (shift) {
-								weekShifts.push(shift);
-							}
-							// Update DOM immediately
-							shiftBlock.className = `shift-block ${isChecked ? "enabled" : "disabled"}`;
-						}
-					}
-				});
-
-				// Update state for all shifts in this week
-				if (weekShifts.length > 0) {
-					this.stateManager.updateWeekShifts(weekShifts, isChecked);
-				}
-			});
-		});
-	}
-
-	/**
 	 * Set initial week toggle states based on data attributes
 	 */
 	setInitialWeekToggleStates() {
 		const weekRows = this.container.querySelectorAll(".week-row");
 		weekRows.forEach((weekRow) => {
 			const weekToggle = weekRow.querySelector(".week-toggle");
+			const allEnabled = weekRow.dataset.allEnabled === "true";
 			const someEnabled = weekRow.dataset.someEnabled === "true";
 
-			if (weekToggle && someEnabled) {
-				weekToggle.indeterminate = true;
+			if (weekToggle) {
+				weekToggle.checked = allEnabled;
+				weekToggle.indeterminate = someEnabled && !allEnabled;
 			}
 		});
-	}
-
-	/**
-	 * Re-attach event listeners after DOM update
-	 */
-	reattachListeners() {
-		this.attachEventListeners();
 	}
 }

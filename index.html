@@ -58,13 +58,22 @@
 			</div>
 
 			<div class="ics-import-section">
-				<h2>Import Shifts from ICS File</h2>
+				<h2>
+					Import Shifts from Calendar
+					<a
+						href="https://quinyx.helpdocs.io/l/en/article/y5dybyykbi-mobile-web-calendar"
+						target="_blank"
+						class="info-link"
+						title="Learn more about calendar integration"
+						>ℹ️</a
+					>
+				</h2>
 				<div class="ics-form">
 					<div class="form-group">
-						<label for="ics-url">ICS File URL:</label>
+						<label for="ics-url">Calendar URL:</label>
 						<input type="url" id="ics-url" placeholder="https://example.com/calendar.ics" />
 					</div>
-					<button id="fetch-ics-btn">Fetch ICS Data</button>
+					<button id="fetch-ics-btn">Fetch Calendar Data</button>
 					<div class="ics-results" id="ics-results">
 						<!-- ICS data will be displayed here -->
 					</div>

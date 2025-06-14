@@ -1,6 +1,6 @@
 /**
  * ICS Import Handler Module
- * Orchestrates state management and DOM interactions for ICS import functionality
+ * Handles state management and DOM interactions for ICS import functionality
  */
 
 import { IcsStateManager } from "./ics-state-manager.js";
@@ -37,12 +37,10 @@ export class IcsImportHandler {
 	render(state) {
 		this.container.innerHTML = IcsImportSection(state);
 
-		// Recreate event handler after DOM update
-		if (this.eventHandler) {
-			this.eventHandler.container = this.container;
-			this.eventHandler.reattachListeners();
-		} else {
-			this.eventHandler = new IcsEventHandler(this.container, this.stateManager);
+		// With event delegation, we only need to ensure the event handler exists
+		// No need to reattach listeners since they're delegated to the container
+		if (!this.eventHandler) {
+			this.eventHandler = new IcsEventHandler(this.container, this.stateManager, this);
 		}
 	}
 

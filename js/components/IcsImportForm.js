@@ -8,12 +8,12 @@
  * @returns {string} - Component HTML
  */
 export default function IcsImportForm(props = {}) {
-	const { icsUrl = "", buttonText = "Fetch ICS Data", isLoading = false } = props;
+	const { icsUrl = "", buttonText = "Fetch Calendar Data", isLoading = false } = props;
 
 	return `
 		<div class="ics-form">
 			<div class="form-group">
-				<label for="ics-url">ICS File URL:</label>
+				<label for="ics-url">Calendar URL:</label>
 				<input
 					type="url"
 					id="ics-url"

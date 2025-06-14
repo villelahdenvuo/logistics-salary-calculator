@@ -26,6 +26,7 @@ export const tvmRate = 0.59;
 export const salaryConfig = {
 	baseSalary: 12.95,
 	breakDuration: 30, // 30 minutes for lunch break
+	breakThreshold: 360, // Include break for shifts longer than 6 hours (360 minutes)
 	extras: {
 		eveningWeekday: {
 			name: "Evening Bonus Weekdays (Mon-Fri 18-22)",

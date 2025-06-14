@@ -13,17 +13,21 @@ import WeeklyView from "./WeeklyView.js";
  * @param {string} props.messageType - Message type ('success' or 'error')
  * @param {object} props.weeklyShifts - Grouped shifts by week
  * @param {number} props.totalShifts - Total number of shifts
+ * @param {object} props.weeklyTotals - Weekly calculation totals (optional)
+ * @param {object} props.grandTotal - Grand total calculations (optional)
  * @returns {string} - Component HTML
  */
 export default function IcsImportSection(props = {}) {
 	const {
 		icsUrl = "",
-		buttonText = "Fetch ICS Data",
+		buttonText = "Fetch Calendar Data",
 		isLoading = false,
 		message = "",
 		messageType = "success",
 		weeklyShifts = {},
 		totalShifts = 0,
+		weeklyTotals = {},
+		grandTotal = null,
 	} = props;
 
 	const form = IcsImportForm({ icsUrl, buttonText, isLoading });
@@ -35,14 +39,14 @@ export default function IcsImportSection(props = {}) {
 			<div style="margin-top: 15px;">
 				<strong>Parsed Shifts (${totalShifts} total):</strong>
 			</div>
-			${WeeklyView({ weeklyShifts })}
+			${WeeklyView({ weeklyShifts, weeklyTotals, grandTotal })}
 		`;
 		results = IcsResults({ content });
-	} else if (totalShifts === 0 && messageType === "success") {
+	} else if (totalShifts === 0 && messageType === "success" && message) {
 		// Show message when ICS file was parsed successfully but contains no shifts
 		const content = `
 			<div style="margin-top: 15px;">
-				<p class="no-shifts">No shifts found in the ICS file. The file was processed successfully but contains no calendar events with shift data.</p>
+				<p class="no-shifts">No shifts found in the calendar. The file was processed successfully but contains no calendar events with shift data.</p>
 			</div>
 		`;
 		results = IcsResults({ content });
@@ -53,7 +57,7 @@ export default function IcsImportSection(props = {}) {
 
 	return `
 		<div class="ics-import-section">
-			<h2>Import Shifts from ICS File</h2>
+			<h2>Import Shifts from Calendar <a href="https://quinyx.helpdocs.io/l/en/article/y5dybyykbi-mobile-web-calendar" target="_blank" class="info-link" title="Learn more about calendar integration">ℹ️</a></h2>
 			${form}
 			${results}
 		</div>

@@ -7,6 +7,7 @@
  * @param {Date} props.shift.start - Shift start time
  * @param {Date} props.shift.end - Shift end time
  * @param {boolean} props.shift.isEnabled - Whether shift is enabled
+ * @param {object} props.shift.calculation - Salary calculation results
  * @returns {string} - Component HTML
  */
 export default function ShiftBlock(props = {}) {
@@ -25,33 +26,28 @@ export default function ShiftBlock(props = {}) {
 		hour12: false,
 	});
 
+	// Format calculation results if available
+	const calculationDisplay =
+		shift.calculation && shift.isEnabled
+			? `
+		<div class="shift-calculation">
+			<div class="shift-hours">${shift.calculation.totalHours.toFixed(1)}h</div>
+			<div class="shift-salary">${shift.calculation.netSalary.toLocaleString("fi-FI", {
+				style: "currency",
+				currency: "EUR",
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			})}</div>
+		</div>
+	`
+			: "";
+
 	return `
-		<div class="shift-block ${shift.isEnabled ? "enabled" : "disabled"}" data-shift-id="${shift.id || ""}" onclick="toggleShiftBlock(this)">
+		<div class="shift-block ${shift.isEnabled ? "enabled" : "disabled"}" data-shift-id="${shift.id || ""}">
 			<div class="shift-time">${startTime} - ${endTime}</div>
 			<div class="shift-description">${shift.description}</div>
-			<input type="checkbox" class="shift-toggle" ${shift.isEnabled ? "checked" : ""} onclick="event.stopPropagation()">
+			${calculationDisplay}
+			<input type="checkbox" class="shift-toggle" ${shift.isEnabled ? "checked" : ""}>
 		</div>
 	`;
 }
-
-/**
- * Toggles a shift block when clicked
- * @param {HTMLElement} shiftBlockElement - The shift block element that was clicked
- */
-window.toggleShiftBlock = function (shiftBlockElement) {
-	const checkbox = shiftBlockElement.querySelector(".shift-toggle");
-	if (checkbox) {
-		checkbox.checked = !checkbox.checked;
-		// Update the visual state immediately
-		const isEnabled = checkbox.checked;
-		const shiftId = shiftBlockElement.dataset.shiftId;
-		shiftBlockElement.className = `shift-block ${isEnabled ? "enabled" : "disabled"}`;
-		// Preserve the data attribute
-		if (shiftId) {
-			shiftBlockElement.setAttribute("data-shift-id", shiftId);
-		}
-
-		// Trigger the change event to update the underlying data
-		checkbox.dispatchEvent(new Event("change", { bubbles: true }));
-	}
-};

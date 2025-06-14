@@ -1,6 +1,6 @@
 /**
  * ICS Fetcher Module
- * Handles network operations for fetching ICS files with CORS fallback
+ * Handles network operations for fetching calendar files with CORS fallback
  */
 
 import { corsProxyHosts } from "./config.js";
@@ -55,7 +55,7 @@ async function fetchViaProxy(url) {
 
 /**
  * Fetches ICS data from a URL with automatic CORS proxy fallback
- * @param {string} url - The ICS file URL to fetch
+ * @param {string} url - The calendar file URL to fetch
  * @returns {Promise<{data: string, usedProxy: boolean}>} The ICS data and whether proxy was used
  * @throws {Error} If both direct and proxy fetch fail
  */
