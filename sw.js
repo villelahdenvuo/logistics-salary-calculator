@@ -1,4 +1,4 @@
-const CACHE_NAME = "logistics-salary-calculator-v7";
+const CACHE_NAME = "logistics-salary-calculator-v8";
 const urlsToCache = [
 	"./",
 	"./index.html",
