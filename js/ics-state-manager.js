@@ -58,6 +58,26 @@ export class IcsStateManager {
 
 		this.observers = [];
 		this.loadInitialUrl();
+
+		// Schedule periodic cache cleanup
+		this.scheduleCacheCleanup();
+	}
+
+	/**
+	 * Schedule periodic cleanup of expired ICS cache entries
+	 */
+	scheduleCacheCleanup() {
+		// Clean up cache every 30 minutes
+		setInterval(
+			() => {
+				if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+					navigator.serviceWorker.controller.postMessage({
+						type: "CLEANUP_CACHE",
+					});
+				}
+			},
+			30 * 60 * 1000,
+		); // 30 minutes
 	}
 
 	/**
@@ -297,9 +317,14 @@ export class IcsStateManager {
 			// Calculate totals for enabled shifts
 			const { weeklyTotals, grandTotal } = this.calculateTotalsForShifts(shiftsWithCalculations);
 
-			const successMessage = result.usedProxy
-				? "Calendar fetched successfully via CORS proxy!"
-				: "Calendar fetched successfully!";
+			let successMessage = "Calendar fetched successfully!";
+			if (result.fromCache) {
+				successMessage = result.usedProxy
+					? "Calendar loaded from cache (via proxy)!"
+					: "Calendar loaded from cache!";
+			} else if (result.usedProxy) {
+				successMessage = "Calendar fetched successfully via CORS proxy!";
+			}
 
 			this.setState({
 				isLoading: false,
@@ -530,5 +555,16 @@ export class IcsStateManager {
 		});
 
 		return weeklyShifts;
+	}
+
+	/**
+	 * Manually clear ICS cache
+	 */
+	async clearIcsCache() {
+		if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+			navigator.serviceWorker.controller.postMessage({
+				type: "CLEAR_ICS_CACHE",
+			});
+		}
 	}
 }
